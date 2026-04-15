@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+
+    <div class="d-flex justify-content-between mb-3">
+        <h3>🚚 Suppliers</h3>
+        <a href="{% url 'suppliers:add_supplier' %}" class="btn btn-success">
+            Add Supplier
+        </a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+     <tbody>
+    {% for s in suppliers %}
+    <tr>
+        <td>{{ s.name }}</td>
+        <td>{{ s.email }}</td>
+        <td>{{ s.phone }}</td>
+        <td>{{ s.address }}</td>
+
+     
+        <td>
+            <a href="{% url 'suppliers:edit_supplier' s.id %}" class="btn btn-primary btn-sm">Edit</a>
+            <a href="{% url 'suppliers:delete_supplier' s.id %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

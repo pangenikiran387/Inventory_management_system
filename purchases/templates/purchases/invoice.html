@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invoice</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 40px;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #eee;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        table th {
+            background: #f4f4f4;
+        }
+
+        .total {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .btn-print {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="invoice-box">
+
+    <h2>📄 Invoice</h2>
+    <p><strong>PO ID:</strong> {{ purchase.id }}</p>
+    <p><strong>Supplier:</strong> {{ purchase.supplier.name }}</p>
+    <p><strong>Date:</strong> {{ purchase.created_at }}</p>
+
+    <hr>
+
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Cost</th>
+            <th>Total</th>
+        </tr>
+
+        {% for item in items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.cost_price }}</td>
+            <td>{{ item.quantity|floatformat:2 }} × {{ item.cost_price }}</td>
+        </tr>
+        {% endfor %}
+
+        <tr>
+            <td colspan="3" class="total">Grand Total</td>
+            <td><strong>{{ total }}</strong></td>
+        </tr>
+    </table>
+
+    <button onclick="window.print()" class="btn-print">🖨 Print</button>
+
+</div>
+
+</body>
+</html>

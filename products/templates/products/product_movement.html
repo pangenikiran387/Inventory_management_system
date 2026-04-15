@@ -1,0 +1,44 @@
+<h2>Stock Movement - {{ product.name }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Movement Type:</label>
+    <select name="movement_type">
+        <option value="IN">Stock In</option>
+        <option value="OUT">Stock Out</option>
+    </select>
+
+    <br><br>
+
+    <label>Quantity:</label>
+    <input type="number" name="quantity" required>
+
+    <br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+<hr>
+
+<h3>Current Stock: {{ product.quantity }}</h3>
+
+<hr>
+
+<h3>Movement History</h3>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Quantity</th>
+    </tr>
+
+    {% for m in movements %}
+    <tr class="{% if m.movement_type == 'IN' %}table-success{% else %}table-danger{% endif %}">
+        <td>{{ m.created_at }}</td>
+        <td>{{ m.movement_type }}</td>
+        <td>{{ m.quantity }}</td>
+    </tr>
+    {% endfor %}
+</table>

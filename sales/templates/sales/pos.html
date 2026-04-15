@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>🧾 POS Billing System</h2>
+
+<form method="POST" action="{% url 'sales:checkout' %}">
+{% csrf_token %}
+
+<div style="display:flex; gap:20px;">
+
+<!-- 🟢 PRODUCTS -->
+<div style="width:60%;">
+    <h3>Products</h3>
+
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        {% for p in products %}
+        <div style="border:1px solid #ddd; padding:10px; border-radius:10px; text-align:center;">
+            <h5>{{ p.name }}</h5>
+            <p>Rs {{ p.price }}</p>
+
+            <!-- ✅ FIX: POST FORM -->
+            <form method="POST" action="{% url 'sales:add_to_cart' p.id %}">
+                {% csrf_token %}
+                <button style="background:#2563eb;color:white;padding:6px 10px;border:none;border-radius:5px;">
+                    ➕ Add
+                </button>
+            </form>
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 🔵 CART -->
+<div style="width:40%; border-left:2px solid #ddd; padding-left:15px;">
+    <h3>🛒 Cart</h3>
+
+    {% if cart_items %}
+
+        {% for item in cart_items %}
+        <div style="border-bottom:1px solid #eee; padding:10px 0;">
+            <strong>{{ item.product.name }}</strong>
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                
+                <!-- QUANTITY -->
+                <div>
+                    <a href="{% url 'sales:decrease_qty' item.product.id %}">➖</a>
+                    <span style="margin:0 10px;">{{ item.qty }}</span>
+                    <a href="{% url 'sales:increase_qty' item.product.id %}">➕</a>
+                </div>
+
+                <!-- REMOVE -->
+                <a href="{% url 'sales:remove_item' item.product.id %}" style="color:red;">
+                    ❌
+                </a>
+            </div>
+
+            <small>Total: Rs {{ item.total }}</small>
+        </div>
+        {% endfor %}
+
+        <hr>
+
+        <h3>Total: Rs {{ total }}</h3>
+
+        <!-- PAYMENT -->
+        <label>Payment Method</label>
+        <select name="payment_method" style="width:100%; padding:8px;">
+            <option value="COD">Cash</option>
+            <option value="ESEWA">eSewa</option>
+        </select>
+
+        <br><br>
+
+        <!-- ✅ CHECKOUT -->
+        <button type="submit"
+                style="width:100%; background:green; color:white; padding:10px; border:none;">
+            Checkout & Generate Bill
+        </button>
+
+        <br><br>
+
+        <!-- ✅ CLEAR CART -->
+        <a href="{% url 'sales:clear_cart' %}"
+           style="display:block; text-align:center; background:red; color:white; padding:8px;">
+           Clear Cart
+        </a>
+
+    {% else %}
+        <p>No items in cart</p>
+    {% endif %}
+
+</div>
+
+</div>
+
+</form>
+
+{% endblock %}

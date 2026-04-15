@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===== DASHBOARD LAYOUT ===== */
+.dashboard-container {
+    padding: 30px;
+    background: #f5f7fa;
+}
+
+/* ===== TITLE ===== */
+.dashboard-title {
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+/* ===== STAT CARDS ===== */
+.stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    height: 100%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h6 {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.stat-card h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+/* COLORS */
+.bg-blue { background: #3b82f6; }
+.bg-green { background: #10b981; }
+.bg-yellow { background: #f59e0b; }
+.bg-red { background: #ef4444; }
+
+/* ===== TABLE SECTION ===== */
+.table-container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* HEADER */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* TABLE */
+.table th {
+    background: #111827;
+    color: white;
+    font-size: 14px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* STATUS */
+.badge-low {
+    color: #b45309;
+    font-weight: 600;
+}
+
+.badge-out {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* BUTTON */
+.btn-custom {
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 14px;
+}
+
+/* RESPONSIVE FIX */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 15px;
+    }
+}
+</style>
+<canvas id="barChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- ================= KPI CARDS ================= -->
+<div class="row mb-4">
+
+  <div class="col-md-6">
+    <div class="card bg-primary text-white p-3">
+      <h4>Total Products</h4>
+      <h2>{{ total_products }}</h2>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card bg-success text-white p-3">
+      <h4>Total Stock Value</h4>
+      <h2>Rs. {{ stock_value }}</h2>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= LINE CHART ================= -->
+<h4>Stock Trends (7 Days)</h4>
+
+<div style="height:300px;">
+    <canvas id="lineChart"></canvas>
+</div>
+
+<!-- ================= BAR CHART ================= -->
+<h4 class="mt-4">Monthly Stock</h4>
+
+<div style="height:300px;">
+    <canvas id="barChart"></canvas>
+</div>
+
+<!-- ================= PIE CHART ================= -->
+<h4 class="mt-4">Category Distribution</h4>
+
+<div style="height:300px; width:300px; margin:auto;">
+    <canvas id="pieChart"></canvas>
+</div>
+
+<script>
+// ================= LINE CHART =================
+const dates = JSON.parse('{{ dates_json|escapejs }}');
+const stockIn = JSON.parse('{{ stock_in_json|escapejs }}');
+const stockOut = JSON.parse('{{ stock_out_json|escapejs }}');
+
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [
+            { label: 'IN', data: stockIn, borderColor: 'green' },
+            { label: 'OUT', data: stockOut, borderColor: 'red' }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// ================= BAR CHART =================
+const months = JSON.parse('{{ months|escapejs }}');
+const inData = JSON.parse('{{ in_data|escapejs }}');
+const outData = JSON.parse('{{ out_data|escapejs }}');
+
+new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [
+            { label: 'IN', data: inData, backgroundColor: 'green' },
+            { label: 'OUT', data: outData, backgroundColor: 'red' }
+        ]
+    }
+});
+
+// ================= PIE CHART =================
+const catLabels = JSON.parse('{{ cat_labels|escapejs }}');
+const catData = JSON.parse('{{ cat_data|escapejs }}');
+
+new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+        labels: catLabels,
+        datasets: [{
+            data: catData,
+            backgroundColor: ['red','blue','green','orange','purple']
+        }]
+    }
+});
+</script>
+
+
+<div class="dashboard-container">
+
+    <h2 class="dashboard-title">Inventory Dashboard</h2>
+
+    <!-- ===== STATS ===== -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="stat-card bg-blue">
+                <h6>Total Products</h6>
+                <h2>{{ total_products }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-green">
+                <h6>Categories</h6>
+                <h2>{{ total_categories }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card" style="background:#6366f1;">
+                <h6>Suppliers</h6>
+                <h2>{{ total_suppliers }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-yellow">
+                <h6>Low Stock</h6>
+                <h2>{{ low_stock }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card bg-red">
+                <h6>Out of Stock</h6>
+                <h2>{{ out_of_stock }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ALERT -->
+    {% if low_stock > 0 or out_of_stock > 0 %}
+    <div class="alert alert-warning">
+        ⚠ Inventory needs attention!
+    </div>
+    {% endif %}
+
+    <!-- ===== PRODUCTS ===== -->
+    <div class="table-container">
+
+        <div class="section-header">
+            <h5>📦 Products</h5>
+            <div>
+                <a href="{% url 'products:add_product' %}" class="btn btn-success btn-custom">Add</a>
+                <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-custom">View All</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.sku }}</td>
+                    <td>{{ product.category.name }}</td>
+                    <td>{{ product.quantity }}</td>
+                    <td>
+                        {% if product.quantity == 0 %}
+                            <span class="badge-out">Out of Stock</span>
+                        {% elif product.quantity <= product.low_stock_threshold %}
+                            <span class="badge-low">Low Stock</span>
+                        {% else %}
+                            <span class="text-success">In Stock</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No products found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- ===== SUPPLIERS ===== -->
+    <div class="table-container">
+
+        <div class="section-header">
+            <h5>🚚 Suppliers</h5>
+            <div>
+                <a href="{% url 'suppliers:add_supplier' %}" class="btn btn-success btn-custom">Add</a>
+                <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-primary btn-custom">View All</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for supplier in suppliers %}
+                <tr>
+                    <td>{{ supplier.name }}</td>
+                    <td>{{ supplier.phone }}</td>
+                    <td>{{ supplier.email }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No suppliers found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

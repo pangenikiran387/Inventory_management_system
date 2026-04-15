@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Sales Orders</h2>
+
+<table class="table table-bordered">
+    <tr>
+        <th>ID</th>
+        <th>Customer</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for s in sales %}
+    <tr>
+        <td>SO-{{ s.id }}</td>
+        <td>{{ s.customer.name }}</td>
+        <td>{{ s.created_at }}</td>
+        <td>
+            {% if s.is_confirmed %}
+                <span style="color:green;">Confirmed</span>
+            {% else %}
+                <span style="color:orange;">Pending</span>
+            {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'sales:sales_detail' s.id %}">View</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

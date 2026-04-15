@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Purchase Order #{{ purchase.id }}</h2>
+
+<p><strong>Supplier:</strong> {{ purchase.supplier.name }}</p>
+<p><strong>Status:</strong>
+    {% if purchase.is_confirmed %}
+        <span style="color:green;">Confirmed</span>
+    {% else %}
+        <span style="color:orange;">Pending</span>
+    {% endif %}
+</p>
+
+<hr>
+
+<h4>Items</h4>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Cost Price</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.cost_price }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No items found</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if not purchase.is_confirmed %}
+<a href="{% url 'purchases:confirm_purchase' purchase.id %}" class="btn btn-success">
+    Confirm Purchase
+</a>
+{% endif %}
+<a href="{% url 'purchases:purchase_invoice' purchase.id %}" class="btn btn-primary">
+    Generate Invoice
+</a>
+
+{% endblock %}

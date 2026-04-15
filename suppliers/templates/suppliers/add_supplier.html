@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Supplier{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Add Supplier</h2>
+
+    <form method="POST" class="card p-4 shadow">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary">Add Supplier</button>
+    </form>
+</div>
+
+{% endblock %}

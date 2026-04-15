@@ -1,0 +1,31 @@
+<h2>Create Purchase Order</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Supplier</label>
+    <select name="supplier">
+        {% for s in suppliers %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+    </select>
+
+    <hr>
+
+    <h4>Items</h4>
+
+    <div id="items">
+        <div>
+            <select name="product">
+                {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="number" name="quantity" placeholder="Qty">
+            <input type="number" name="cost_price" placeholder="Cost Price">
+        </div>
+    </div>
+
+    <button type="submit">Create Purchase</button>
+</form>

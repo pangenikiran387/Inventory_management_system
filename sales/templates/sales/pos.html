@@ -65,11 +65,18 @@
         <h3>Total: Rs {{ total }}</h3>
 
         <!-- PAYMENT -->
-        <label>Payment Method</label>
-        <select name="payment_method" style="width:100%; padding:8px;">
-            <option value="COD">Cash</option>
-            <option value="ESEWA">eSewa</option>
-        </select>
+        <!-- CUSTOMER NAME -->
+<label>Customer Name</label>
+<input type="text" name="customer_name"
+       placeholder="Enter customer name"
+       style="width:100%; padding:8px; margin-bottom:10px;" required>
+
+<!-- PAYMENT -->
+<label>Payment Method</label>
+<select name="payment_method" style="width:100%; padding:8px;">
+    <option value="COD">Cash</option>
+    <option value="ESEWA">eSewa</option>
+</select>
 
         <br><br>
 

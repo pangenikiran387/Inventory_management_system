@@ -1,4 +1,8 @@
-from django.shortcuts import render
+import json
+import hmac
+import hashlib
+import base64
+import uuid
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import SalesItem, SalesOrder
@@ -96,14 +100,14 @@ def checkout(request):
     if not cart:
         return redirect('sales:pos')
 
-    customer = Customer.objects.first()  # later improve
-
-    payment_method = request.POST.get('payment_method', 'COD')
+    customer_name = request.POST.get('customer_name')
+    payment_method = request.POST.get('payment_method')
 
     sale = SalesOrder.objects.create(
-        customer=customer,
+        
+        customer_name=customer_name,
         payment_method=payment_method,
-        payment_status='PAID' if payment_method == 'COD' else 'PENDING'
+        payment_status='PENDING'
     )
 
     for pid, qty in cart.items():
@@ -116,13 +120,20 @@ def checkout(request):
             selling_price=product.price
         )
 
-        # reduce stock
         product.quantity -= qty
         product.save()
 
     request.session['cart'] = {}
 
-    return redirect('sales:sales_invoice', id=sale.id)
+    # ✅ COD → direct invoice
+    if payment_method == 'COD':
+        sale.payment_status = 'PAID'
+        sale.save()
+        return redirect('sales:sales_invoice', id=sale.id)
+
+    # ✅ eSewa → redirect to payment
+    else:
+        return redirect('sales:esewa_form', id=sale.id)
 
 def increase_qty(request, id):
     cart = request.session.get('cart', {})
@@ -153,14 +164,6 @@ def remove_item(request, id):
 
     request.session['cart'] = cart
     return redirect('sales:pos')
-import uuid
-import hmac
-import hashlib
-import base64
-from django.views import View
-from django.shortcuts import render, get_object_or_404
-from .models import SalesOrder
-
 
 def generate_signature(secret_key, message):
     key = bytes(secret_key, 'utf-8')
@@ -172,26 +175,84 @@ def generate_signature(secret_key, message):
     return signature
 
 
-class EsewaView(View):
-    def get(self, request, id):
-        sale = get_object_or_404(SalesOrder, id=id)
+def esewa_verify(request):
+    data = request.GET.get('data')
 
-        total = sum(item.total() for item in sale.items.all())
+    if not data:
+        return redirect('sales:pos')
 
-        transaction_uuid = str(uuid.uuid4())
+    try:
+        decoded_data = base64.b64decode(data).decode('utf-8')
+        map_data = json.loads(decoded_data)
+    except:
+        return redirect('sales:pos')
 
-        secret_key = "8gBm/:&EnhH.1/q"  # test key
+    transaction_uuid = map_data.get('transaction_uuid')
+    status = map_data.get('status')
+    total_amount = map_data.get('total_amount')
+    product_code = map_data.get('product_code')
+    signed_field_names = map_data.get('signed_field_names')
+    received_signature = map_data.get('signature')
 
-       
-        message = f"total_amount={total},transaction_uuid={transaction_uuid},product_code=EPAYTEST"
+    # Extract sale id from transaction_uuid
+    try:
+        sale_id = int(transaction_uuid.split("-")[1])
+    except:
+        return redirect('sales:pos')
 
-        signature = generate_signature(secret_key, message)
+    sale = get_object_or_404(SalesOrder, id=sale_id)
 
-        context = {
-            "sale": sale,
-            "total": total,
-            "transaction_uuid": transaction_uuid,
-            "signature": signature,
-        }
+    # Calculate expected total
+    expected_total = sum(item.total() for item in sale.items.all())
 
-        return render(request, "sales/esewaform.html", context)
+    # Verify amounts match
+    if float(total_amount) != expected_total:
+        sale.payment_status = 'FAILED'
+        sale.save()
+        return redirect('sales:pos')
+
+    # Verify signature
+    secret_key = "8gBm/:&EnhH.1/q"
+    # The signed_field_names in response tells us which fields to use for verification
+    # From docs: transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names
+    message = f"transaction_code={map_data.get('transaction_code')},status={status},total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code},signed_field_names={signed_field_names}"
+    expected_signature = generate_signature(secret_key, message)
+
+    if received_signature != expected_signature:
+        # Signature verification failed
+        sale.payment_status = 'FAILED'
+        sale.save()
+        return redirect('sales:pos')
+
+    if status == 'COMPLETE':
+        sale.payment_status = 'PAID'
+        sale.transaction_id = map_data.get('transaction_code')
+        sale.save()
+        return redirect('sales:sales_invoice', id=sale.id)
+    else:
+        sale.payment_status = 'FAILED'
+        sale.save()
+        return redirect('sales:pos')
+
+
+def esewa_form(request, id):
+    sale = get_object_or_404(SalesOrder, id=id)
+    items = sale.items.all()
+    total = sum(i.total() for i in items)
+
+    transaction_uuid = f"ORDER-{sale.id}-{uuid.uuid4().hex[:12]}"
+    sale.transaction_uuid = transaction_uuid
+    sale.save()
+
+    secret_key = "8gBm/:&EnhH.1/q"
+    message = f"total_amount={total},transaction_uuid={transaction_uuid},product_code=EPAYTEST"
+    signature = generate_signature(secret_key, message)
+
+    context = {
+        'sale': sale,
+        'total': total,
+        'transaction_uuid': transaction_uuid,
+        'signature': signature,
+    }
+
+    return render(request, 'sales/esewaform.html', context)

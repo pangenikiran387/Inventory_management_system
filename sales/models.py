@@ -13,7 +13,10 @@ class Customer(models.Model):
     from products.models import Products
 
 class SalesOrder(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
+
+    customer_name = models.CharField(max_length=100, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     PAYMENT_METHODS = [
@@ -24,11 +27,14 @@ class SalesOrder(models.Model):
     PAYMENT_STATUS = [
         ('PENDING', 'Pending'),
         ('PAID', 'Paid'),
+        ('FAILED', 'Failed'),
     ]
 
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='COD')
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS, default='PENDING')
+
     transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    transaction_uuid = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f"SO-{self.id}"

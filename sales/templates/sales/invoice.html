@@ -19,6 +19,7 @@
 <p><b>Order ID:</b> SO-{{ sale.id }}</p>
 <p><b>Date:</b> {{ sale.created_at }}</p>
 <p><b>Payment:</b> {{ sale.payment_method }} ({{ sale.payment_status }})</p>
+<p><strong>Customer:</strong> {{ sale.customer_name }}</p>
 
 <table>
 <tr>
@@ -38,6 +39,7 @@
 {% endfor %}
 
 </table>
+<button onclick="window.print()">Print Invoice</button>
 
 <div class="total">
     <b>Total: Rs. {{ total }}</b>

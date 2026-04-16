@@ -1,27 +1,17 @@
 <h2>Pay with eSewa</h2>
 
-<form action="https://uat.esewa.com.np/epay/main" method="POST">
-
+<form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
     <input type="hidden" name="amount" value="{{ total }}">
     <input type="hidden" name="tax_amount" value="0">
     <input type="hidden" name="total_amount" value="{{ total }}">
-
     <input type="hidden" name="transaction_uuid" value="{{ transaction_uuid }}">
     <input type="hidden" name="product_code" value="EPAYTEST">
-
     <input type="hidden" name="product_service_charge" value="0">
     <input type="hidden" name="product_delivery_charge" value="0">
-
-    <!-- SUCCESS / FAIL -->
-    <input type="hidden" name="success_url" value="http://127.0.0.1:8000/sales/esewa-success/">
-    <input type="hidden" name="failure_url" value="http://127.0.0.1:8000/sales/esewa-fail/">
-
-    <!-- SIGNATURE -->
+    <input type="hidden" name="success_url" value="http://127.0.0.1:8000/sales/esewa-verify/">
+    <input type="hidden" name="failure_url" value="http://127.0.0.1:8000/sales/pos/">
     <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code">
     <input type="hidden" name="signature" value="{{ signature }}">
 
-    <button type="submit" style="background:green;color:white;padding:10px;">
-        Pay Rs {{ total }} with eSewa
-    </button>
-
+    <button type="submit">Pay with eSewa</button>
 </form>

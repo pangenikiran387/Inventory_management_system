@@ -15,5 +15,6 @@ urlpatterns = [
     path('increase/<int:id>/', views.increase_qty, name='increase_qty'),
     path('decrease/<int:id>/', views.decrease_qty, name='decrease_qty'),
     path('remove/<int:id>/', views.remove_item, name='remove_item'),
-    path('esewa/<int:id>/', views.EsewaView.as_view(), name='esewa'),
+    path('esewa/<int:id>/', views.esewa_form, name='esewa_form'),
+    path('esewa-verify/', views.esewa_verify, name='esewa_verify'),
 ]
